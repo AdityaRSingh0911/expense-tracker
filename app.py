@@ -1,7 +1,26 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, g
+from database.db import get_db, init_db, seed_db
+import click
 
 app = Flask(__name__)
 
+@app.teardown_appcontext
+def close_db(exception):
+    db = getattr(g, 'db', None)
+    if db is not None:
+        db.close()
+
+
+# ------------------------------------------------------------------ #
+# CLI Commands                                                       #
+# ------------------------------------------------------------------ #
+
+@app.cli.command("init-db")
+def init_db_command():
+    """Initialize the database and seed it with sample data."""
+    init_db()
+    seed_db()
+    print("Database initialized and seeded.")
 
 # ------------------------------------------------------------------ #
 # Routes                                                              #
