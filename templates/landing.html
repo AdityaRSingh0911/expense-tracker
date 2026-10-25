@@ -4,6 +4,68 @@
 
 {% block content %}
 
+{% if session.get('user_id') %}
+<section class="hero">
+    <div class="hero-inner">
+        <div class="hero-badge">
+            <span class="badge-dot"></span> Welcome back to Spendly!
+        </div>
+        <h1 class="hero-title">
+            Your finances, <br>
+            <em class="text-accent">all in one place.</em>
+        </h1>
+        <p class="hero-subtitle">
+            Ready to track your expenses? Head over to your profile to manage your budget and see your spending patterns.
+        </p>
+        <div class="hero-actions">
+            <a href="{{ url_for('profile') }}" class="btn-primary">Go to Profile</a>
+            <a href="#" id="open-modal" class="btn-ghost">See how it works</a>
+        </div>
+    </div>
+    <div class="hero-visual">
+        <div class="mock-card">
+            <div class="mock-card-window">
+                <div class="window-controls">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+            </div>
+            <div class="mock-card-stats">
+                <div class="stat-card">
+                    <span class="stat-label">This month</span>
+                    <span class="stat-value">₹18,240</span>
+                    <span class="stat-trend positive">+12% vs last</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Budget left</span>
+                    <span class="stat-value">₹6,760</span>
+                    <span class="stat-trend positive">43% remaining</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Transactions</span>
+                    <span class="stat-value">34</span>
+                    <span class="stat-trend">this month</span>
+                </div>
+            </div>
+            <div class="mock-card-bars">
+                <div class="bar-row">
+                    <span class="bar-label">Food</span>
+                    <div class="bar-track"><div class="bar-fill bar-orange" style="width: 70%"></div></div>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">Travel</span>
+                    <div class="bar-track"><div class="bar-fill bar-blue" style="width: 45%"></div></div>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">Bills</span>
+                    <div class="bar-track"><div class="bar-fill bar-purple" style="width: 35%"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% else %}
 <section class="hero">
     <div class="hero-inner">
         <div class="hero-badge">
@@ -55,7 +117,7 @@
                 </div>
                 <div class="bar-row">
                     <span class="bar-label">Travel</span>
-                    <div class="bar-track"><div class="bar-fill bar-blue" style="width: 45%"></div></div>
+                    <div class="bar-track"><div class="bar-fill bar-blue} style="width: 45%"></div></div>
                 </div>
                 <div class="bar-row">
                     <span class="bar-label">Bills</span>
@@ -65,6 +127,8 @@
         </div>
     </div>
 </section>
+{% endif %}
+
 
 <div id="video-modal" class="modal-overlay">
     <div class="modal-container">
