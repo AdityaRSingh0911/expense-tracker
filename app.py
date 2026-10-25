@@ -1,6 +1,7 @@
-from flask import Flask, render_template, g, request, redirect, url_for, flash
+from flask import Flask, render_template, g, request, redirect, url_for, flash, session
 from database.db import get_db, init_db, seed_db
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
 import click
 import re
 
@@ -15,8 +16,18 @@ def close_db(exception):
 
 
 # ------------------------------------------------------------------ #
-# CLI Commands                                                       #
+# Authentication Decorator                                               #
 # ------------------------------------------------------------------ #
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash("Please login to access this page.", "error")
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 
 @app.cli.command("init-db")
 def init_db_command():
@@ -36,6 +47,9 @@ def landing():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    if 'user_id' in session:
+        return redirect(url_for("landing"))
+
     if request.method == "POST":
         username = request.form.get("username")
         email = request.form.get("email")
@@ -75,8 +89,33 @@ def register():
     return render_template("register.html")
 
 
-@app.route("/login")
+@app.route("/login", methods=["GET", "POST"])
 def login():
+    if 'user_id' in session:
+        return redirect(url_for("landing"))
+
+    if request.method == "POST":
+        username_or_email = request.form.get("username_or_email")
+        password = request.form.get("password")
+
+        if not username_or_email or not password:
+            flash("All fields are required.", "error")
+            return render_template("login.html")
+
+        db = get_db()
+        user = db.execute(
+            "SELECT id, password_hash FROM users WHERE username = ? OR email = ?",
+            (username_or_email, username_or_email)
+        ).fetchone()
+
+        if user and check_password_hash(user["password_hash"], password):
+            session["user_id"] = user["id"]
+            flash("Login successful!", "success")
+            return redirect(url_for("landing"))
+        else:
+            flash("Invalid username/email or password.", "error")
+            return render_template("login.html")
+
     return render_template("login.html")
 
 
@@ -95,11 +134,15 @@ def privacy():
 # ------------------------------------------------------------------ #
 
 @app.route("/logout")
+@login_required
 def logout():
-    return "Logout — coming in Step 3"
+    session.pop("user_id", None)
+    flash("You have been logged out.", "success")
+    return redirect(url_for("login"))
 
 
 @app.route("/profile")
+@login_required
 def profile():
     return "Profile page — coming in Step 4"
 
