@@ -1,8 +1,11 @@
-from flask import Flask, render_template, g
+from flask import Flask, render_template, g, request, redirect, url_for, flash
 from database.db import get_db, init_db, seed_db
+from werkzeug.security import generate_password_hash
 import click
+import re
 
 app = Flask(__name__)
+app.secret_key = "spendly_secret_key_for_dev"
 
 @app.teardown_appcontext
 def close_db(exception):
@@ -31,8 +34,44 @@ def landing():
     return render_template("landing.html")
 
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
+    if request.method == "POST":
+        username = request.form.get("username")
+        email = request.form.get("email")
+        password = request.form.get("password")
+        confirm_password = request.form.get("confirm_password")
+
+        # Basic Validation
+        if not all([username, email, password, confirm_password]):
+            flash("All fields are required.", "error")
+            return render_template("register.html")
+
+        if password != confirm_password:
+            flash("Passwords do not match.", "error")
+            return render_template("register.html")
+
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            flash("Invalid email format.", "error")
+            return render_template("register.html")
+
+        # Database Uniqueness Check
+        db = get_db()
+        user = db.execute("SELECT id FROM users WHERE username = ? OR email = ?", (username, email)).fetchone()
+        if user:
+            flash("Username or email already taken.", "error")
+            return render_template("register.html")
+
+        # Success: Hash password and save
+        hashed_password = generate_password_hash(password)
+        db.execute(
+            "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
+            (username, email, hashed_password)
+        )
+        db.commit()
+        flash("Account created successfully! Please login.", "success")
+        return redirect(url_for("login"))
+
     return render_template("register.html")
 
 
@@ -81,4 +120,6 @@ def delete_expense(id):
 
 
 if __name__ == "__main__":
+    init_db()
+    seed_db()
     app.run(debug=True, port=5001)

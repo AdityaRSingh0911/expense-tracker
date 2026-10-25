@@ -1,7 +1,7 @@
 import sqlite3
 from flask import g
 
-DATABASE = "expense_tracker.db"
+DATABASE = "spendly.db"
 
 def get_db():
     """Returns a SQLite connection with row_factory and foreign keys enabled."""
@@ -23,7 +23,7 @@ def init_db():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT NOT NULL UNIQUE,
                 email TEXT NOT NULL UNIQUE,
-                password TEXT NOT NULL,
+                password_hash TEXT NOT NULL,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );
 
@@ -47,11 +47,13 @@ def seed_db():
         # Check if users table is empty
         cursor = db.execute("SELECT count(*) FROM users")
         if cursor.fetchone()[0] == 0:
-            # Insert a test user (password is 'password123' in plain text for now as per initial setup,
-            # but will be hashed in Step 2)
+            # Insert a test user (using a hashed password for consistency)
+            # password123 -> hashed
+            from werkzeug.security import generate_password_hash
+            hashed_password = generate_password_hash("password123")
             cursor = db.execute(
-                "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
-                ("testuser", "test@example.com", "password123")
+                "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
+                ("testuser", "test@example.com", hashed_password)
             )
             user_id = cursor.lastrowid
 
