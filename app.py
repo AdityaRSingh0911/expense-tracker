@@ -42,6 +42,8 @@ def init_db_command():
 
 @app.route("/")
 def landing():
+    if 'user_id' in session:
+        return redirect(url_for("profile"))
     return render_template("landing.html")
 
 
@@ -144,7 +146,59 @@ def logout():
 @app.route("/profile")
 @login_required
 def profile():
-    return "Profile page — coming in Step 4"
+    db = get_db()
+    # Fetch user details
+    user = db.execute(
+        "SELECT username, email, created_at FROM users WHERE id = ?",
+        (session["user_id"],)
+    ).fetchone()
+
+    # Fetch summary stats
+    total_spent = db.execute(
+        "SELECT SUM(amount) FROM expenses WHERE user_id = ?",
+        (session["user_id"],)
+    ).fetchone()[0] or 0
+
+    transaction_count = db.execute(
+        "SELECT COUNT(*) FROM expenses WHERE user_id = ?",
+        (session["user_id"],)
+    ).fetchone()[0] or 0
+
+    top_category = db.execute(
+        """SELECT category FROM expenses
+           WHERE user_id = ?
+           GROUP BY category
+           ORDER BY SUM(amount) DESC
+           LIMIT 1""",
+        (session["user_id"],)
+    ).fetchone()
+    top_category_name = top_category["category"] if top_category else "None"
+
+    # Fetch recent transactions
+    recent_txs = db.execute(
+        "SELECT date, description, category, amount FROM expenses WHERE user_id = ? ORDER BY date DESC LIMIT 5",
+        (session["user_id"],)
+    ).fetchall()
+
+    # Fetch category distribution for the chart
+    category_dist = db.execute(
+        """SELECT category, SUM(amount) as total
+           FROM expenses
+           WHERE user_id = ?
+           GROUP BY category
+           ORDER BY total DESC""",
+        (session["user_id"],)
+    ).fetchall()
+
+    return render_template(
+        "profile.html",
+        user=user,
+        total_spent=total_spent,
+        transaction_count=transaction_count,
+        top_category=top_category_name,
+        recent_txs=recent_txs,
+        category_dist=category_dist
+    )
 
 
 @app.route("/expenses/add")
