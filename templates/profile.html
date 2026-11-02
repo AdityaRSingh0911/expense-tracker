@@ -1,152 +1,163 @@
 {% extends "base.html" %}
 
-{% block title %}My Profile | Spendly{% endblock %}
+{% block title %}Your Profile - Spendly{% endblock %}
+
+{% block head %}
+<script src="https://unpkg.com/lucide@latest"></script>
+{% endblock %}
 
 {% block content %}
 <div class="profile-page">
-    <!-- User Header -->
-    <header class="profile-header">
-        <div class="user-avatar">
-            {{ user["username"][:2] | upper }}
-        </div>
-        <div class="user-info">
-            <h1>{{ user["username"] }}</h1>
-            <p class="user-email">{{ user["email"] }}</p>
-            <p class="user-meta">Member since {{ user["created_at"][:10] }}</p>
-        </div>
-    </header>
+    <div class="profile-container">
 
-    <!-- Stats Grid -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <span class="stat-label">TOTAL SPENT</span>
-            <span class="stat-value">₹{{ "{:,.2f}".format(total_spent) }}</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-label">TRANSACTIONS</span>
-            <span class="stat-value">{{ transaction_count }}</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-label">TOP CATEGORY</span>
-            <span class="stat-value">{{ top_category }}</span>
-        </div>
-    </div>
-
-    <!-- Main Content Area -->
-    <div class="profile-main-layout">
-        <div class="recent-transactions">
-            <h2>Recent Transactions</h2>
-            <table class="tx-table">
-                <thead>
-                    <tr>
-                        <th>DATE</th>
-                        <th>DESCRIPTION</th>
-                        <th>CATEGORY</th>
-                        <th>AMOUNT</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for tx in recent_txs %}
-                    <tr>
-                        <td>{{ tx["date"] }}</td>
-                        <td>{{ tx["description"] }}</td>
-                        <td><span class="category-badge">{{ tx["category"] }}</span></td>
-                        <td class="amount-col">₹{{ "{:,.2f}".format(tx["amount"]) }}</td>
-                    </tr>
-                    {% endfor %}
-                    {% if not recent_txs %}
-                    <tr>
-                        <td colspan="4" class="no-data">No transactions yet.</td>
-                    </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="category-analysis">
-            <h2>By Category</h2>
-            <div class="category-list">
-                {% for cat in category_dist %}
-                <div class="cat-row">
-                    <div class="cat-info">
-                        <span class="cat-name">{{ cat["category"] }}</span>
-                        <span class="cat-amount">₹{{ "{:,.2f}".format(cat["total"]) }}</span>
-                    </div>
-                    <div class="cat-bar-container">
-                        <div class="cat-bar" style="width: {{ (cat["total"] / total_spent * 100) if total_spent > 0 else 0 }}%"></div>
-                    </div>
-                </div>
-                {% endfor %}
-                {% if not category_dist %}
-                <p class="no-data">No data available.</p>
-                {% endif %}
+        <!-- User Header -->
+        <header class="user-header">
+            <div class="user-avatar">
+                {{ user['username'][0] | upper }}
             </div>
+            <div class="user-meta">
+                <h1 class="user-name">{{ user['username'] }}</h1>
+                <p class="user-email">{{ user['email'] }}</p>
+                <p class="user-member">Member since {{ user['created_at'][:10] }}</p>
+            </div>
+        </header>
+
+        <!-- Stats Grid -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">TOTAL SPENT</span>
+                <span class="stat-value">₹{{ "{:,.2f}".format(total_spent) }}</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">TRANSACTIONS</span>
+                <span class="stat-value">{{ transaction_count }}</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">TOP CATEGORY</span>
+                <span class="stat-value">{{ top_category }}</span>
+            </div>
+        </section>
+
+        <!-- Bottom Layout -->
+        <div class="profile-main-grid">
+            <!-- Recent Transactions -->
+            <section class="tx-section">
+                <h2 class="section-title">Recent Transactions</h2>
+                <div class="tx-table-container">
+                    <table class="tx-table">
+                        <thead>
+                            <tr>
+                                <th>DATE</th>
+                                <th>DESCRIPTION</th>
+                                <th>CATEGORY</th>
+                                <th class="text-right">AMOUNT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tx in recent_txs %}
+                            <tr>
+                                <td>{{ tx['date'] }}</td>
+                                <td class="desc-cell">{{ tx['description'] }}</td>
+                                <td><span class="cat-badge">{{ tx['category'] }}</span></td>
+                                <td class="text-right amount-cell">₹{{ "{:,.2f}".format(tx['amount']) }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% if not recent_txs %}
+                            <tr>
+                                <td colspan="4" class="empty-state">No transactions yet</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Category Breakdown -->
+            <section class="cat-section">
+                <h2 class="section-title">By Category</h2>
+                <div class="cat-list">
+                    {% for cat in category_breakdown %}
+                    <div class="cat-row">
+                        <div class="cat-info">
+                            <span class="cat-name">{{ cat['category'] }}</span>
+                            <span class="cat-amount">₹{{ "{:,.2f}".format(cat['total']) }}</span>
+                        </div>
+                        <div class="cat-bar-bg">
+                            <div class="cat-bar-fill" style="width: {{ (cat['total'] / total_spent * 100) if total_spent > 0 else 0 }}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% if not category_breakdown %}
+                    <p class="empty-state">No data available</p>
+                    {% endif %}
+                </div>
+            </section>
         </div>
     </div>
 </div>
 
 <style>
     .profile-page {
-        max-width: 1100px;
+        padding: 3rem 2rem;
+        max-width: var(--max-width);
         margin: 0 auto;
-        padding: 2rem 1rem;
-        font-family: 'DM Sans', sans-serif;
-        color: var(--ink);
+        font-family: var(--font-body);
+    }
+    .profile-container {
+        display: flex;
+        flex-direction: column;
+        gap: 3rem;
     }
 
-    .profile-header {
+    /* User Header */
+    .user-header {
         display: flex;
         align-items: center;
         gap: 1.5rem;
-        margin-bottom: 3rem;
     }
-
     .user-avatar {
         width: 64px;
         height: 64px;
-        background-color: #1a3a32; /* Dark green based on image */
+        background: var(--accent);
         color: white;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.25rem;
+        font-size: 1.5rem;
         font-weight: 600;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
-
-    .user-info h1 {
-        margin: 0;
-        font-family: 'DM Serif Display', serif;
+    .user-name {
+        font-family: var(--font-display);
         font-size: 1.75rem;
-    }
-
-    .user-email {
-        margin: 0.25rem 0;
-        color: var(--ink-muted);
-        font-size: 0.95rem;
-    }
-
-    .user-meta {
+        color: var(--ink);
         margin: 0;
+    }
+    .user-email {
         color: var(--ink-muted);
-        font-size: 0.85rem;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+    .user-member {
+        color: var(--ink-faint);
+        font-size: 0.8rem;
+        margin: 0;
     }
 
+    /* Stats Grid */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 1.5rem;
-        margin-bottom: 3rem;
     }
-
     .stat-card {
-        background: white;
+        background: var(--paper-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
         padding: 1.5rem;
-        border-radius: 12px;
-        border: 1px solid #eee;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-
     .stat-label {
         display: block;
         font-size: 0.75rem;
@@ -155,117 +166,117 @@
         margin-bottom: 0.5rem;
         letter-spacing: 0.05em;
     }
-
     .stat-value {
+        display: block;
+        font-family: var(--font-display);
         font-size: 1.5rem;
-        font-weight: 600;
         color: var(--ink);
+        font-weight: 600;
     }
 
-    .profile-main-layout {
+    /* Main Content Grid */
+    .profile-main-grid {
         display: grid;
         grid-template-columns: 2fr 1fr;
         gap: 2rem;
     }
 
-    .recent-transactions, .category-analysis {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 12px;
-        border: 1px solid #eee;
-    }
-
-    .recent-transactions h2, .category-analysis h2 {
+    .section-title {
+        font-family: var(--font-display);
         font-size: 1.25rem;
+        color: var(--ink);
         margin-bottom: 1.5rem;
-        font-weight: 600;
     }
 
+    /* Transaction Table */
+    .tx-table-container {
+        background: var(--paper-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
     .tx-table {
         width: 100%;
         border-collapse: collapse;
         text-align: left;
     }
-
     .tx-table th {
+        background: var(--paper-warm);
+        padding: 0.75rem 1rem;
         font-size: 0.75rem;
-        color: var(--ink-muted);
-        padding: 0.75rem 0;
-        border-bottom: 1px solid #eee;
         font-weight: 600;
+        color: var(--ink-muted);
+        border-bottom: 1px solid var(--border);
+        text-transform: uppercase;
     }
-
     .tx-table td {
-        padding: 1rem 0;
-        border-bottom: 1px solid #f9f9f9;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-soft);
         font-size: 0.9rem;
+        color: var(--ink-soft);
     }
-
-    .category-badge {
-        background: #f0f4f2;
+    .desc-cell { font-weight: 500; }
+    .text-right { text-align: right; }
+    .amount-cell { font-weight: 600; color: var(--ink); }
+    .cat-badge {
+        background: var(--accent-light);
+        color: var(--accent);
         padding: 0.2rem 0.6rem;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        color: #5a7a6e;
-    }
-
-    .amount-col {
-        text-align: right;
+        border-radius: 999px;
+        font-size: 0.75rem;
         font-weight: 500;
     }
-
-    .category-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: var(--ink-muted);
+        font-style: italic;
     }
 
+    /* Category Breakdown */
+    .cat-section {
+        background: var(--paper-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .cat-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
     .cat-row {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
     }
-
     .cat-info {
         display: flex;
         justify-content: space-between;
-        font-size: 0.9rem;
+        font-size: 0.875rem;
     }
-
-    .cat-name {
-        color: var(--ink);
-    }
-
-    .cat-amount {
-        font-weight: 500;
-    }
-
-    .cat-bar-container {
-        width: 100%;
+    .cat-name { font-weight: 500; color: var(--ink-soft); }
+    .cat-amount { font-weight: 600; color: var(--ink); }
+    .cat-bar-bg {
         height: 6px;
-        background: #eee;
-        border-radius: 3px;
+        background: var(--border-soft);
+        border-radius: 999px;
         overflow: hidden;
     }
-
-    .cat-bar {
+    .cat-bar-fill {
         height: 100%;
-        background: #cbb893; /* Muted gold/tan based on image */
-        border-radius: 3px;
+        background: var(--accent);
+        border-radius: 999px;
+        transition: width 0.3s ease;
     }
 
-    .no-data {
-        text-align: center;
-        color: var(--ink-muted);
-        font-size: 0.9rem;
-        padding: 2rem 0;
-    }
-
-    @media (max-width: 768px) {
-        .stats-grid {
+    @media (max-width: 900px) {
+        .profile-main-grid {
             grid-template-columns: 1fr;
         }
-        .profile-main-layout {
+        .stats-grid {
             grid-template-columns: 1fr;
         }
     }
